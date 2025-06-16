@@ -12,6 +12,5 @@ import org.aeonbits.owner.Config;
 public interface Environment extends Config {
 
     String BookStore_BaseURI();
-    String PetStore_BaseURI();
 
 }
