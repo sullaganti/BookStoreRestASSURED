@@ -155,8 +155,47 @@ jobs:
       - name: Ensure reports directory exists
         if: always()
         run: |
-          mkdir -p target/site/reports
-          cp -r ./reports/* target/site/reports/ || true
+          # Clean approach - create fresh directory
+          mkdir -p fresh_reports
+          
+          # Copy only essential report files, avoiding any potential symlinks
+          if [ -d "./reports" ]; then
+            # Create directory structure first
+            mkdir -p fresh_reports/
+            
+            # Copy HTML index
+            if [ -f "./reports/index.html" ]; then
+              cp "./reports/index.html" fresh_reports/
+            fi
+            
+            # Check and copy allure report directories
+            for dir in ./reports/allure-report-build-*; do
+              if [ -d "$dir" ]; then
+                dir_name=$(basename "$dir")
+                mkdir -p "fresh_reports/$dir_name"
+                cp -r "$dir"/* "fresh_reports/$dir_name/" || true
+              fi
+            done
+            
+            # Check and copy extent report directories
+            for dir in ./reports/extent-report-build-*; do
+              if [ -d "$dir" ]; then
+                dir_name=$(basename "$dir")
+                mkdir -p "fresh_reports/$dir_name"
+                cp -r "$dir"/* "fresh_reports/$dir_name/" || true
+              fi
+            done
+          fi
+          
+          # Use the fresh directory for GitHub Pages
+          rm -rf target/site/reports || true
+          mkdir -p target/site
+          mv fresh_reports target/site/reports
+          
+          # Check total size
+          echo "Checking total size of artifacts..."
+          du -sh target/site/reports
+          find target/site/reports -type l | wc -l | xargs echo "Symbolic links found:"
 
       - name: Upload GitHub Pages artifact
         if: always()
