@@ -1,8 +1,6 @@
 package base;
 
-import Utilities.POJO.Builder;
 import Utilities.POJO.response.GET_SigninWithValidCredentials;
-import Utilities.POJO.response.POST_signUpWithValidCredentials;
 import Utilities.envPicker.Environment;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.response.Response;
@@ -22,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class BaseClass {
 	public static Environment envProperties;
 	protected String env="";
-	protected Builder requestBody = new Builder();
 	public static String authToken;
 
 	@BeforeSuite()
