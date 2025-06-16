@@ -23,12 +23,15 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          cd bookstoreApp/bookstore
+          tree
+          pwd
+          dir .
+          cd bookstore/bookstore
           pip install -r requirements.txt
 
       - name: Set up Docker Compose
         run: |
-          cd bookstoreApp/bookstore
+          cd bookstore/bookstore
           docker compose up --build -d bookstore
 
       - name: Set up Java
