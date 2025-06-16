@@ -141,13 +141,13 @@ jobs:
           EOF
 
       - name: Upload Allure Report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: allure-report
           path: allure-report
 
       - name: Upload Extent Report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: extent-report
           path: ExtentReports/ExtentReport.html
