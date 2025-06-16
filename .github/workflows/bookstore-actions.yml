@@ -55,47 +55,83 @@ jobs:
       - name: Create reports directory structure
         if: always()
         run: |
-          $buildId = "${{ github.run_number }}"
-          $commitHash = "${{ github.sha }}".Substring(0,7)
+          buildId="${{ github.run_number }}"
+          commitHash="${{ github.sha }}"
+          commitHashShort=${commitHash:0:7}
           
           # Create main reports directory
-          New-Item -ItemType Directory -Force -Path "./target/site/reports"
+          mkdir -p "./reports"
           
           # Create build-specific directories
-          $allureDir = "./target/site/reports/allure-report-build-$buildId"
-          $extentDir = "./target/site/reports/extent-report-build-$buildId"
+          allureDir="./reports/allure-report-build-$buildId"
+          extentDir="./reports/extent-report-build-$buildId"
           
-          New-Item -ItemType Directory -Force -Path $allureDir
-          New-Item -ItemType Directory -Force -Path $extentDir
+          mkdir -p "$allureDir"
+          mkdir -p "$extentDir"
           
           # Copy Allure reports
-          if (Test-Path "./target/site/allure-maven-plugin") {
-              Copy-Item -Path "./target/site/allure-maven-plugin/*" -Destination $allureDir -Recurse -Force
-          }
+          if [ -d "./target/site/allure-maven-plugin" ]; then
+              cp -r ./target/site/allure-maven-plugin/* "$allureDir/" 2>/dev/null || true
+          fi
           
-          # Copy Extent reports (check multiple possible locations)
-          $extentSources = @("./ExtentReports", "./target/ExtentReports", "./reports")
-          foreach ($source in $extentSources) {
-              if (Test-Path $source) {
-                  Get-ChildItem -Path $source -Filter "*.html" | ForEach-Object {
-                      Copy-Item -Path $_.FullName -Destination $extentDir -Force
-                  }
-              }
-          }
-        shell: powershell
+          # Copy Extent reports
+          if [ -d "./ExtentReports" ]; then
+              cp -r ./ExtentReports/* "$extentDir/" 2>/dev/null || true
+          fi
 
       - name: Create index page
         if: always()
         run: |
-          $buildId = "${{ github.run_number }}"
-          $commitHash = "${{ github.sha }}".Substring(0,7)
-          $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss UTC"
+          buildId="${{ github.run_number }}"
+          commitHash="${{ github.sha }}"
+          commitHashShort=${commitHash:0:7}
+          timestamp=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
           
           # Create simple HTML index
-          $htmlContent = "<!DOCTYPE html><html><head><title>Test Reports - Build $buildId</title></head><body><h1>Test Reports - RestAssured Framework</h1><p><strong>Build:</strong> #$buildId<br><strong>Commit:</strong> $commitHash<br><strong>Generated:</strong> $timestamp</p><h2>Reports</h2><ul><li><a href=`"allure-report-build-$buildId/index.html`">Allure Report</a></li><li><a href=`"extent-report-build-$buildId/`">Extent Report</a></li></ul></body></html>"
-          
-          $htmlContent | Out-File -FilePath "./target/site/reports/index.html" -Encoding UTF8
-        shell: powershell
+          cat > "./reports/index.html" << EOF
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Test Reports - Build $buildId</title>
+              <style>
+                  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 40px; }
+                  .header { background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 30px; }
+                  .reports { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+                  .report-card { border: 1px solid #e1e5e9; border-radius: 8px; padding: 20px; background: white; }
+                  .report-card h3 { margin-top: 0; color: #0366d6; }
+                  .report-link { display: inline-block; padding: 10px 16px; background: #0366d6; color: white; text-decoration: none; border-radius: 6px; margin-top: 10px; }
+                  .report-link:hover { background: #0356cc; }
+                  .info { color: #586069; }
+              </style>
+          </head>
+          <body>
+              <div class="header">
+                  <h1>📊 Test Reports</h1>
+                  <div class="info">
+                      <p><strong>Build:</strong> #$buildId</p>
+                      <p><strong>Commit:</strong> $commitHashShort</p>
+                      <p><strong>Generated:</strong> $timestamp</p>
+                  </div>
+              </div>
+              
+              <div class="reports">
+                  <div class="report-card">
+                      <h3>📊 Allure Report</h3>
+                      <p>Comprehensive test execution report with detailed analytics, test history, and failure analysis.</p>
+                      <a href="allure-report-build-$buildId/index.html" class="report-link">View Allure Report</a>
+                  </div>
+                  
+                  <div class="report-card">
+                      <h3>📊 Extent Report</h3>
+                      <p>Detailed Extent report with test execution logs and visualizations.</p>
+                      <a href="extent-report-build-$buildId/" class="report-link">View Extent Report</a>
+                  </div>
+              </div>
+          </body>
+          </html>
+          EOF
 
       - name: Setup Pages
         if: always()
