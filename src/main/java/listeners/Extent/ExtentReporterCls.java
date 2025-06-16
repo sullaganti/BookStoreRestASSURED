@@ -17,13 +17,14 @@ public class ExtentReporterCls {
         String ReportFolderName = SDF.format(d);
         
         // Create ExtentReports directory if it doesn't exist
-        String reportDir = System.getProperty("user.dir") + "\\ExtentReports";
+        String reportDir = System.getProperty("user.dir") + File.separator + "ExtentReports";
         File dir = new File(reportDir);
         if (!dir.exists()) {
             dir.mkdirs();
         }
         
-        String path = reportDir + "\\ExtentReport.html";
+        String path = reportDir + File.separator + "ExtentReport.html";
+
 
         ExtentSparkReporter ESR = new ExtentSparkReporter(path).viewConfigurer()
                 .viewOrder()
