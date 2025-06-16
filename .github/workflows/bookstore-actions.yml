@@ -41,7 +41,9 @@ jobs:
           java-version: '17'
 
       - name: Run tests
-        run: mvn clean test -D TestNgXml="Suites/BookStore.xml"
+        run: |
+          cd bookstoreApp
+          mvn clean test -D TestNgXml="Suites/BookStore.xml"
 
       - name: Tear down Docker Compose
         if: always()
