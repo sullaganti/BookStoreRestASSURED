@@ -1,8 +1,8 @@
-# RestAssured API Testing Framework
+# BookStore API Testing Framework
 
-[Click Here for Latest Report](https://bhargavkumar-65.github.io/RestAssured_Framework/)
+[Click Here for Latest Report](https://sullaganti.github.io/BookStoreRestASSURED/)
 
-A comprehensive **RestAssured API automation framework** built with **Java**, **Maven**, and **TestNG** for testing REST APIs with robust reporting and CI/CD integration.
+A comprehensive **RestAssured API automation framework** built with **Java**, **Maven**, and **TestNG** for testing BookStore REST APIs with robust reporting and CI/CD integration. The framework includes JWT authentication, comprehensive book management operations, and user registration/login functionality.
 
 ## 📋 Table of Contents
 
@@ -23,8 +23,9 @@ A comprehensive **RestAssured API automation framework** built with **Java**, **
 
 ## 🎯 Overview
 
-This framework is designed to validate **Swagger PetStore API** endpoints comprehensively, providing:
-- ✅ **Complete CRUD operations testing** (Create, Read, Update, Delete)
+This framework is designed to validate **BookStore API** endpoints comprehensively, providing:
+- ✅ **Complete CRUD operations testing** for Books (Create, Read, Update, Delete)
+- ✅ **User Authentication** testing (Registration and Login with JWT tokens)
 - ✅ **Positive and negative test scenarios** 
 - ✅ **Data-driven testing** with TestNG DataProviders
 - ✅ **Dual reporting** with Allure and Extent Reports  
@@ -38,14 +39,16 @@ This framework is designed to validate **Swagger PetStore API** endpoints compre
 The framework follows a **Page Object Model (POM)** pattern adapted for API testing:
 
 ```
-📁 RestAssured_Framework/
+📁 BookStoreRestASSURED/
 ├── 📁 src/
 │   ├── 📁 main/java/
 │   │   ├── 📁 base/           # Base classes and configurations
 │   │   ├── 📁 listeners/      # TestNG listeners (Allure, Extent, Teams)
 │   │   └── 📁 Utilities/      # Utility classes, POJOs, DataProviders
 │   ├── 📁 test/java/
-│   │   └── 📁 PetStore/       # Test classes organized by response codes
+│   │   └── 📁 BookStore/      # Test classes organized by functionality
+│   │       ├── 📁 Positive/   # Positive test scenarios
+│   │       └── 📁 Negative/   # Negative test scenarios
 │   └── 📁 resources/          # Environment configs, test data
 ├── 📁 Suites/                 # TestNG suite XML files
 └── 📁 .github/workflows/      # CI/CD pipeline configurations
@@ -74,12 +77,37 @@ The framework follows a **Page Object Model (POM)** pattern adapted for API test
 - **Maven 3.6+**
 - **Git**
 - **IDE** (IntelliJ IDEA, Eclipse, VS Code)
+- **BookStore API** running on `http://127.0.0.1:8000/` (See [bookstore](./bookstore/) directory for API setup)
+
+### BookStore API Setup
+
+The BookStore API is included in this project under the `bookstore/` directory. To set it up:
+
+1. **Navigate to the bookstore directory:**
+   ```bash
+   cd bookstore/bookstore
+   ```
+
+2. **Install Python dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Start the BookStore API:**
+   ```bash
+   uvicorn main:app --reload
+   ```
+
+4. **Verify API is running:**
+   - API will be available at `http://127.0.0.1:8000`
+   - API documentation at `http://127.0.0.1:8000/docs`
+   - Health check at `http://127.0.0.1:8000/health`
 
 ### Installation
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/bhargavkumar-65/RestAssured_Framework.git
+   git clone https://github.com/sullaganti/BookStoreRestASSURED.git
    cd RestAssured_Framework
    ```
 
@@ -90,7 +118,7 @@ The framework follows a **Page Object Model (POM)** pattern adapted for API test
 
 3. **Verify installation:**
    ```bash
-   mvn test -D TestNgXml=PetStore.xml
+   mvn test -D TestNgXml=BookStore.xml
    ```
 
 ### Quick Start
@@ -98,13 +126,13 @@ The framework follows a **Page Object Model (POM)** pattern adapted for API test
 Run your first test:
 ```bash
 # Run all tests
-mvn clean test -DTestNgXml=PetStore.xml
+mvn clean test -DTestNgXml=BookStore.xml
 
 # Run specific test class
-mvn test -Dtest=PositiveTests
+mvn test -Dtest=RegistrationTests
 
 # Run with specific environment
-mvn test -DTestNgXml=PetStore.xml -Denvironment=PROD
+mvn test -DTestNgXml=BookStore.xml -Denvironment=PROD
 ```
 
 ## 📁 Project Structure
@@ -124,9 +152,14 @@ src/
 │       ├── envPicker/Environment.java        # Environment configs
 │       └── customAnnotations/                # Custom annotations
 └── test/java/
-    └── PetStore/
-        ├── StatusCode2xx/PositiveTests.java  # Positive test cases
-        └── StatusCode4xx/NegativeTests.java  # Negative test cases
+    └── BookStore/
+        ├── Positive/
+        │   ├── RegistrationTests.java        # User registration tests
+        │   └── BooksTests.java               # Book CRUD operations tests
+        └── Negative/
+            ├── RegistrationNegativeTests.java # Registration negative tests
+            ├── LoginNegativeTests.java        # Login negative tests
+            └── BooksNegativeTests.java        # Books negative tests
 ```
 
 ## 🏃‍♂️ Running Tests
@@ -137,10 +170,10 @@ src/
 
 ```bash
 # Basic execution
-mvn clean test -D TestNgXml=PetStore.xml
+mvn clean test -D TestNgXml=BookStore.xml
 
 # With environment parameter
-mvn test -D TestNgXml=PetStore.xml -D environment=PROD/DEV
+mvn test -D TestNgXml=BookStore.xml -D environment=PROD/DEV
 
 # Generate reports
 mvn allure:report
@@ -150,7 +183,7 @@ mvn allure:serve
 
 #### IDE Execution
 
-1. **Right-click** on `Suites/PetStore.xml`
+1. **Right-click** on `Suites/BookStore.xml`
 2. **Select** "Run As" → "TestNG Suite"
 3. **View results** in Allure/ Extent reports
 
@@ -158,22 +191,23 @@ mvn allure:serve
 
 | Test Category | Description | Test Methods |
 |---------------|-------------|--------------|
-| **Positive Tests** | Valid API operations | POST, GET, PUT, DELETE operations |
-| **Negative Tests** | Invalid/edge cases | Invalid data, non-existent resources |
-| **Data-Driven Tests** | Multiple datasets | Pet creation with various statuses |
+| **Positive Tests** | Valid API operations | User Registration, Login, Book CRUD operations |
+| **Negative Tests** | Invalid/edge cases | Invalid data, authentication failures, non-existent resources |
+| **Data-Driven Tests** | Multiple datasets | Book creation with various data sets, user registration scenarios |
 
 ### Test Scenarios Covered
 
 #### ✅ CRUD Operations
-- **CREATE**: Add new pets with different statuses
-- **READ**: Retrieve pets by ID and status
-- **UPDATE**: Modify existing pet information  
-- **DELETE**: Remove pets and verify deletion
+- **CREATE**: Add new books with different attributes and user registration
+- **READ**: Retrieve books by ID, get all books, user authentication
+- **UPDATE**: Modify existing book information  
+- **DELETE**: Remove books and verify deletion
 
 #### ✅ Validation Points
-- ✓ HTTP status codes (200, 404, 405)
+- ✓ HTTP status codes (200, 400, 404, 422, 500)
 - ✓ Response headers validation
 - ✓ JSON schema validation
+- ✓ JWT token authentication
 - ✓ Data integrity checks
 
 ## 📊 Reporting
@@ -205,7 +239,7 @@ mvn allure:serve
 ### CI/CD Reports
 
 Reports are automatically deployed to **GitHub Pages** after each CI run:
-- **Live Reports:** `https://bhargavkumar-65.github.io/RestAssured_Framework/`
+- **Live Reports:** `https://github.com/sullaganti/BookStoreRestASSURED.git`
 - **Build-specific URLs** for historical tracking
 
 ## 🔄 CI/CD Pipeline
@@ -235,21 +269,21 @@ The framework includes a robust CI/CD pipeline with:
 
 | Environment | Base URI | Purpose |
 |-------------|----------|---------|
-| **PROD** | `https://petstore.swagger.io` | Production testing |
-| **DEV** | `https://petstore.swagger.io` | Development testing |
+| **PROD** | `http://127.0.0.1:8000/` | Production/Local testing |
+| **DEV** | `http://127.0.0.1:8000/` | Development testing |
 
 ### Configuration Files
 
 ```properties
 # src/main/resources/environment/PROD.properties
-BaseURI=https://petstore.swagger.io
+BookStore_BaseURI=http://127.0.0.1:8000/
 ```
 
 ### Environment Selection
 
 ```bash
 # Via command line
-mvn test -DTestNgXml=PetStore.xml -Denvironment=PROD
+mvn test -DTestNgXml=BookStore.xml -Denvironment=PROD
 
 # Via TestNG XML
 <parameter name="environment" value="PROD"/>
@@ -262,12 +296,12 @@ mvn test -DTestNgXml=PetStore.xml -Denvironment=PROD
 The framework uses **TestNG DataProviders** for comprehensive test coverage:
 
 ```java
-@DataProvider(name = "createPetData")
-public Object[][] createPetData() {
+@DataProvider(name = "createBookData")
+public Object[][] createBookData() {
     return new Object[][] {
-        {"Fluffy", 123, PetStatus.AVAILABLE},
-        {"Buddy", 456, PetStatus.PENDING},
-        {"Max", 789, PetStatus.SOLD}
+        {"The Great Gatsby", "F. Scott Fitzgerald", 1925, "A classic American novel"},
+        {"To Kill a Mockingbird", "Harper Lee", 1960, "A story of racial injustice"},
+        {"1984", "George Orwell", 1949, "A dystopian social science fiction novel"}
     };
 }
 ```
@@ -276,10 +310,10 @@ public Object[][] createPetData() {
 
 | Data Provider | Purpose | Test Scenarios |
 |---------------|---------|----------------|
-| `createPetData` | Pet creation | Multiple pets with different attributes |
-| `updatePetData` | Pet updates | Status changes and data modifications |
-| `petStatusData` | Status filtering | Available, pending, sold pets |
-| `deletePetData` | Pet deletion | Cleanup and verification |
+| `createBookData` | Book creation | Multiple books with different attributes |
+| `updateBookData` | Book updates | Content changes and data modifications |
+| `registrationData` | User registration | Valid and invalid user data |
+| `loginData` | User authentication | Successful and failed login attempts |
 
 ### Dynamic Data Generation
 
@@ -331,17 +365,19 @@ generateRandomNumericString(5)
 
 | API Endpoint | HTTP Method | Test Scenarios | Status |
 |--------------|-------------|----------------|---------|
-| `/pet` | POST | Create pet with valid/invalid data | ✅ |
-| `/pet` | PUT | Update existing/non-existent pet | ✅ |
-| `/pet/{id}` | GET | Retrieve pet by valid/invalid ID | ✅ |
-| `/pet/{id}` | DELETE | Delete existing pet | ✅ |
-| `/pet/{id}` | POST | Update pet with form data | ✅ |
-| `/pet/findByStatus` | GET | Find pets by status | ✅ |
+| `/signup` | POST | User registration with valid/invalid data | ✅ |
+| `/login` | POST | User authentication with correct/incorrect credentials | ✅ |
+| `/books/` | POST | Create book with valid/invalid data (requires auth) | ✅ |
+| `/books/` | GET | Retrieve all books (requires auth) | ✅ |
+| `/books/{id}` | GET | Retrieve book by valid/invalid ID (requires auth) | ✅ |
+| `/books/{id}` | PUT | Update existing/non-existent book (requires auth) | ✅ |
+| `/books/{id}` | DELETE | Delete existing book (requires auth) | ✅ |
+| `/health` | GET | API health check | ✅ |
 
 ## 🔗 Useful Links
 
-- **GitHub Repository:** [RestAssured_Framework](https://github.com/bhargavkumar-65/RestAssured_Framework)
-- **Live Reports:** [GitHub Pages](https://bhargavkumar-65.github.io/RestAssured_Framework/)
-- **PetStore API:** [Swagger PetStore](https://petstore.swagger.io/)
+- **GitHub Repository:** [BookStoreRestASSURED](https://github.com/sullaganti/BookStoreRestASSURED.git)
+- **Live Reports:** [GitHub Pages](https://sullaganti.github.io/BookStoreRestASSURED/)
+- **BookStore API Documentation:** [Local API Docs](http://127.0.0.1:8000/docs)
 - **RestAssured Documentation:** [REST Assured](https://rest-assured.io/)
 - **TestNG Documentation:** [TestNG](https://testng.org/doc/)
