@@ -152,15 +152,22 @@ jobs:
           name: extent-report
           path: ExtentReports/ExtentReport.html
 
+      - name: Ensure reports directory exists
+        if: always()
+        run: |
+          mkdir -p target/site/reports
+          cp -r ./reports/* target/site/reports/ || true
+
+      - name: Upload GitHub Pages artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: github-pages
+          path: target/site/reports
+
       - name: Setup Pages
         if: always()
         uses: actions/configure-pages@v5
-
-      - name: Upload artifact
-        if: always()
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: ./target/site/reports
 
       - name: Deploy to GitHub Pages
         if: always()
