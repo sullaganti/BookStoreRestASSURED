@@ -7,6 +7,7 @@ on:
   pull_request:
     branches:
       - main
+
 # permissions for GitHub Pages deployment
 permissions:
   contents: read
@@ -37,7 +38,7 @@ jobs:
       - name: Set up Docker Compose
         run: |
           cd bookstore/bookstore
-          docker compose up --build -d bookstore      
+          docker compose up --build -d bookstore
 
       - name: Set up Java
         uses: actions/setup-java@v3
@@ -66,6 +67,15 @@ jobs:
           commitHash="${{ github.sha }}"
           commitHashShort=${commitHash:0:7}
           
+          # Debug: List current directory contents
+          echo "=== Current directory contents ==="
+          ls -la
+          echo "=== Looking for ExtentReports ==="
+          find . -name "ExtentReport*" -type f 2>/dev/null || true
+          echo "=== Looking for allure reports ==="
+          find . -name "allure*" -type d 2>/dev/null || true
+          find . -path "*/target/site/*" -type d 2>/dev/null || true
+          
           # Create main reports directory
           mkdir -p "./reports"
           
@@ -87,12 +97,24 @@ jobs:
               echo "No Allure reports found"
           fi
           
-          # Copy Extent reports - from repo root as specified
-          if [ -d "./ExtentReports" ]; then
-              echo "Found Extent reports in ExtentReports"
+          # Copy Extent reports - check for both directory and individual file
+          if [ -f "./ExtentReports/ExtentReport.html" ]; then
+              echo "Found ExtentReport.html file, copying"
+              mkdir -p "$extentDir"
+              cp ./ExtentReports/ExtentReport.html "$extentDir/" 2>/dev/null || true
+              # Copy any additional files in the ExtentReports directory
+              if [ -d "./ExtentReports" ]; then
+                  cp -r ./ExtentReports/* "$extentDir/" 2>/dev/null || true
+              fi
+          elif [ -d "./ExtentReports" ]; then
+              echo "Found ExtentReports directory, copying contents"
               cp -r ./ExtentReports/* "$extentDir/" 2>/dev/null || true
           else
-              echo "No Extent reports found in ExtentReports"
+              echo "No Extent reports found - checking paths:"
+              echo "ExtentReports directory exists: $([ -d './ExtentReports' ] && echo 'yes' || echo 'no')"
+              echo "ExtentReport.html file exists: $([ -f './ExtentReports/ExtentReport.html' ] && echo 'yes' || echo 'no')"
+              # Try to find any ExtentReport files
+              find . -name "*Extent*" -type f 2>/dev/null || echo "No Extent files found anywhere"
           fi
 
       - name: Create index page
@@ -142,12 +164,12 @@ jobs:
                   <div class="report-card">
                       <h3>📊 Extent Report</h3>
                       <p>Detailed Extent report with test execution logs and visualizations.</p>
-                      <a href="extent-report-build-$buildId/" class="report-link">View Extent Report</a>
+                      <a href="extent-report-build-$buildId/ExtentReport.html" class="report-link">View Extent Report</a>
                   </div>
               </div>
           </body>
           </html>
-          EOF      
+          EOF
           
       - name: Upload GitHub Pages artifact
         if: always()
