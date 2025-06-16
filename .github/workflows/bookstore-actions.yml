@@ -1,0 +1,107 @@
+name: Bookstore CI/CD
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  bookstore:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install Python dependencies
+        run: pip install -r bookstore/requirements.txt
+
+      - name: Set up Docker Compose
+        run: |
+          cd bookstoreApp/bookstore
+          docker compose up --build -d bookstore
+
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Run tests
+        run: mvn clean test -D TestNgXml="Suites/BookStore.xml"
+
+      - name: Tear down Docker Compose
+        if: always()
+        run: docker compose down
+
+      - name: Generate Allure Report
+        if: always()
+        run: mvn allure:report
+
+      - name: Create reports directory structure
+        if: always()
+        run: |
+          $buildId = "${{ github.run_number }}"
+          $commitHash = "${{ github.sha }}".Substring(0,7)
+          
+          # Create main reports directory
+          New-Item -ItemType Directory -Force -Path "./target/site/reports"
+          
+          # Create build-specific directories
+          $allureDir = "./target/site/reports/allure-report-build-$buildId"
+          $extentDir = "./target/site/reports/extent-report-build-$buildId"
+          
+          New-Item -ItemType Directory -Force -Path $allureDir
+          New-Item -ItemType Directory -Force -Path $extentDir
+          
+          # Copy Allure reports
+          if (Test-Path "./target/site/allure-maven-plugin") {
+              Copy-Item -Path "./target/site/allure-maven-plugin/*" -Destination $allureDir -Recurse -Force
+          }
+          
+          # Copy Extent reports (check multiple possible locations)
+          $extentSources = @("./ExtentReports", "./target/ExtentReports", "./reports")
+          foreach ($source in $extentSources) {
+              if (Test-Path $source) {
+                  Get-ChildItem -Path $source -Filter "*.html" | ForEach-Object {
+                      Copy-Item -Path $_.FullName -Destination $extentDir -Force
+                  }
+              }
+          }
+        shell: powershell
+
+      - name: Create index page
+        if: always()
+        run: |
+          $buildId = "${{ github.run_number }}"
+          $commitHash = "${{ github.sha }}".Substring(0,7)
+          $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss UTC"
+          
+          # Create simple HTML index
+          $htmlContent = "<!DOCTYPE html><html><head><title>Test Reports - Build $buildId</title></head><body><h1>Test Reports - RestAssured Framework</h1><p><strong>Build:</strong> #$buildId<br><strong>Commit:</strong> $commitHash<br><strong>Generated:</strong> $timestamp</p><h2>Reports</h2><ul><li><a href=`"allure-report-build-$buildId/index.html`">Allure Report</a></li><li><a href=`"extent-report-build-$buildId/`">Extent Report</a></li></ul></body></html>"
+          
+          $htmlContent | Out-File -FilePath "./target/site/reports/index.html" -Encoding UTF8
+        shell: powershell
+
+      - name: Setup Pages
+        if: always()
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        if: always()
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./target/site/reports
+
+      - name: Deploy to GitHub Pages
+        if: always()
+        id: deployment
+        uses: actions/deploy-pages@v4

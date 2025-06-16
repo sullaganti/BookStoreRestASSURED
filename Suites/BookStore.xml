@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="Book Store API Tests">
+    <parameter name="environment" value="PROD"></parameter>
+    <listeners>
+        <listener class-name="listeners.Allure.AllureListener"/>
+        <listener class-name="listeners.Extent.ExtentListener"></listener>
+    </listeners>
+
+    <test name="Positive Tests for BookStore API">
+<classes>
+    <class name="BookStore.Positive.RegistrationTests"></class>
+    <class name="BookStore.Positive.BooksTests"></class>
+</classes>
+    </test>
+
+    <test name="Negative Tests for BookStore API">
+        <classes>
+            <class name="BookStore.Negative.RegistrationNegativeTests"/>
+            <class name="BookStore.Negative.LoginNegativeTests"/>
+            <class name="BookStore.Negative.BooksNegativeTests"/>
+        </classes>
+    </test>
+
+
+
+</suite>
+

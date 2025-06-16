@@ -1,0 +1,8 @@
+target/
+.idea/
+allure-results/
+allure-report/
+ExtentReports/
+.allure/
+.vscode/
+bookstoreApp/__pycache__/
