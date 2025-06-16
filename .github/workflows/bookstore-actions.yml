@@ -22,7 +22,9 @@ jobs:
           python-version: '3.9'
 
       - name: Install Python dependencies
-        run: pip install -r bookstoreApp/bookstore/requirements.txt
+        run: |
+          cd bookstoreApp
+          pip install -r bookstore/requirements.txt
 
       - name: Set up Docker Compose
         run: |
