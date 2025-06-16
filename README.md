@@ -2,6 +2,7 @@
 
 [Click Here for Latest Report](https://sullaganti.github.io/BookStoreRestASSURED/)
 
+## Note: The Failures in Above Reports are Potential Bugs found in Registration and login of Users. please check them.
 A comprehensive **RestAssured API automation framework** built with **Java**, **Maven**, and **TestNG** for testing BookStore REST APIs with robust reporting and CI/CD integration. The framework includes JWT authentication, comprehensive book management operations, and user registration/login functionality.
 
 ## 📋 Table of Contents
