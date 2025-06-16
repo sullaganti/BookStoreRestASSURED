@@ -42,7 +42,6 @@ jobs:
 
       - name: Run tests
         run: |
-          cd bookstoreApp
           mvn clean test -D TestNgXml="Suites/BookStore.xml"
 
       - name: Tear down Docker Compose
