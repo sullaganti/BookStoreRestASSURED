@@ -7,6 +7,11 @@ on:
   pull_request:
     branches:
       - main
+# permissions for GitHub Pages deployment
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
   bookstore:
@@ -46,7 +51,9 @@ jobs:
 
       - name: Tear down Docker Compose
         if: always()
-        run: docker compose down
+        run: |
+          cd bookstore/bookstore
+          docker compose down
 
       - name: Generate Allure Report
         if: always()
@@ -132,6 +139,18 @@ jobs:
           </body>
           </html>
           EOF
+
+      - name: Upload Allure Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: allure-report
+          path: allure-report
+
+      - name: Upload Extent Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: extent-report
+          path: ExtentReports/ExtentReport.html
 
       - name: Setup Pages
         if: always()
