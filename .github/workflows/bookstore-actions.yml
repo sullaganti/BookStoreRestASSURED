@@ -37,7 +37,7 @@ jobs:
       - name: Set up Docker Compose
         run: |
           cd bookstore/bookstore
-          docker compose up --build -d bookstore
+          docker compose up --build -d bookstore      
 
       - name: Set up Java
         uses: actions/setup-java@v3
@@ -76,14 +76,23 @@ jobs:
           mkdir -p "$allureDir"
           mkdir -p "$extentDir"
           
-          # Copy Allure reports
+          # Copy Allure reports - check multiple possible locations
           if [ -d "./target/site/allure-maven-plugin" ]; then
+              echo "Found Allure reports in target/site/allure-maven-plugin"
               cp -r ./target/site/allure-maven-plugin/* "$allureDir/" 2>/dev/null || true
+          elif [ -d "./allure-report" ]; then
+              echo "Found Allure reports in allure-report"
+              cp -r ./allure-report/* "$allureDir/" 2>/dev/null || true
+          else
+              echo "No Allure reports found"
           fi
           
-          # Copy Extent reports
+          # Copy Extent reports - from repo root as specified
           if [ -d "./ExtentReports" ]; then
+              echo "Found Extent reports in ExtentReports"
               cp -r ./ExtentReports/* "$extentDir/" 2>/dev/null || true
+          else
+              echo "No Extent reports found in ExtentReports"
           fi
 
       - name: Create index page
@@ -138,77 +147,24 @@ jobs:
               </div>
           </body>
           </html>
-          EOF
-
-      - name: Upload Allure Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: allure-report
-          path: allure-report
-
-      - name: Upload Extent Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: extent-report
-          path: ExtentReports/ExtentReport.html
-
-      - name: Ensure reports directory exists
-        if: always()
-        run: |
-          # Clean approach - create fresh directory
-          mkdir -p fresh_reports
+          EOF      
           
-          # Copy only essential report files, avoiding any potential symlinks
-          if [ -d "./reports" ]; then
-            # Create directory structure first
-            mkdir -p fresh_reports/
-            
-            # Copy HTML index
-            if [ -f "./reports/index.html" ]; then
-              cp "./reports/index.html" fresh_reports/
-            fi
-            
-            # Check and copy allure report directories
-            for dir in ./reports/allure-report-build-*; do
-              if [ -d "$dir" ]; then
-                dir_name=$(basename "$dir")
-                mkdir -p "fresh_reports/$dir_name"
-                cp -r "$dir"/* "fresh_reports/$dir_name/" || true
-              fi
-            done
-            
-            # Check and copy extent report directories
-            for dir in ./reports/extent-report-build-*; do
-              if [ -d "$dir" ]; then
-                dir_name=$(basename "$dir")
-                mkdir -p "fresh_reports/$dir_name"
-                cp -r "$dir"/* "fresh_reports/$dir_name/" || true
-              fi
-            done
-          fi
-          
-          # Use the fresh directory for GitHub Pages
-          rm -rf target/site/reports || true
-          mkdir -p target/site
-          mv fresh_reports target/site/reports
-          
-          # Check total size
-          echo "Checking total size of artifacts..."
-          du -sh target/site/reports
-          find target/site/reports -type l | wc -l | xargs echo "Symbolic links found:"
-
       - name: Upload GitHub Pages artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-pages-artifact@v3
         with:
-          name: github-pages
-          path: target/site/reports
+          path: ./reports
 
-      - name: Setup Pages
-        if: always()
-        uses: actions/configure-pages@v5
-
+  deploy:
+    needs: bookstore
+    if: always()
+    runs-on: ubuntu-latest
+    
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    
+    steps:
       - name: Deploy to GitHub Pages
-        if: always()
         id: deployment
         uses: actions/deploy-pages@v4
